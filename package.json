@@ -1,0 +1,12 @@
+{
+  "name": "tigeroz-api",
+  "version": "1.0.0",
+  "description": "Server for TIGEROZ ROLEPLAY",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
