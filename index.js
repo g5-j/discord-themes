@@ -2,25 +2,30 @@ import express from "express";
 import serverless from "serverless-http";
 
 const app = express();
-app.use(express.json());
 
-let announcementMessage = null;
-let announcementTime = 0;
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.text());
+
+let announcementMessage = "";
 
 app.post("/set_msg", (req, res) => {
-  const { message } = req.body;
-  if (!message) return res.status(400).send("No message provided");
+  let message = "";
 
-  announcementMessage = message;
-  announcementTime = Date.now();
-  res.status(200).send("Announcement saved");
+  if (req.body?.message) message = req.body.message;
+
+  else if (req.body && typeof req.body === "object") message = Object.values(req.body)[0] || "";
+
+  else if (typeof req.body === "string") message = req.body;
+
+  if (message.toLowerCase() === "stop") announcementMessage = "";
+  else announcementMessage = message;
+
+  res.status(200).send("ok");
 });
 
 app.get("/msg", (req, res) => {
-  if (announcementMessage && (Date.now() - announcementTime <= 7000)) {
-    return res.status(200).send(announcementMessage);
-  }
-  res.status(200).send("");
+  res.status(200).send(announcementMessage);
 });
 
 export default app;
