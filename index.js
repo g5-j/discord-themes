@@ -13,15 +13,13 @@ app.post("/set_msg", (req, res) => {
   let message = "";
 
   if (req.body?.message) message = req.body.message;
-
   else if (req.body && typeof req.body === "object") message = Object.values(req.body)[0] || "";
-
   else if (typeof req.body === "string") message = req.body;
 
   if (message.toLowerCase() === "stop") announcementMessage = "";
   else announcementMessage = message;
 
-  res.status(200).send("ok");
+  res.end();
 });
 
 app.get("/msg", (req, res) => {
