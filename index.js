@@ -9,6 +9,8 @@ app.use(express.text());
 
 let announcementMessage = "";
 
+/* ========== ANNOUNCEMENT ========== */
+
 app.post("/set_msg", (req, res) => {
   let message = "";
 
@@ -24,6 +26,33 @@ app.post("/set_msg", (req, res) => {
 
 app.get("/msg", (req, res) => {
   res.status(200).send(announcementMessage);
+});
+
+/* ========== UPDATE RELAY ========== */
+
+app.post("/update", async (req, res) => {
+  try {
+    let players = req.body.players;
+    let time = req.body.time;
+    let weather = req.body.weather;
+
+    const params = new URLSearchParams();
+    if (players) params.append("players", players);
+    if (time) params.append("time", time);
+    if (weather) params.append("weather", weather);
+
+    await fetch("http://fi9.bot-hosting.net:21908/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: params.toString()
+    });
+
+    res.end();
+  } catch (err) {
+    res.status(500).end();
+  }
 });
 
 export default app;
