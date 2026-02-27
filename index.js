@@ -14,9 +14,11 @@ let announcementMessage = "";
 app.post("/set_msg", (req, res) => {
   let message = "";
 
-  if (req.body?.message) message = req.body.message;
-  else if (req.body && typeof req.body === "object") message = Object.values(req.body)[0] || "";
-  else if (typeof req.body === "string") message = req.body;
+  if (req.body?.message) {
+    message = req.body.message;
+  } else if (typeof req.body === "string") {
+    message = req.body;
+  }
 
   if (message.toLowerCase() === "stop") announcementMessage = "";
   else announcementMessage = message;
@@ -35,6 +37,23 @@ app.post("/update", async (req, res) => {
     let players = req.body.players;
     let time = req.body.time;
     let weather = req.body.weather;
+
+    if (weather) {
+      if (weather.toLowerCase() === "clear") weather = "مشمس";
+      else if (weather.toLowerCase() === "rain") weather = "ممطر";
+    }
+
+    if (time) {
+      const [hoursStr, minutes] = time.split(":");
+      let hours = parseInt(hoursStr, 10);
+      let period = "AM";
+      if (hours === 0) hours = 12;
+      else if (hours >= 12) {
+        period = "PM";
+        if (hours > 12) hours -= 12;
+      }
+      time = `${hours}:${minutes} ${period}`;
+    }
 
     const params = new URLSearchParams();
     if (players) params.append("players", players);
