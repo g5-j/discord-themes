@@ -7,26 +7,32 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.text());
 
+let connectedPlayers = [];
+
 /* ========= PLAYERS RELAY ========= */
 
-let connectedPlayers = []; // هنا نحفظ أسماء اللاعبين المتصلين
-
-// استلام بيانات من البوت (Discord)
 app.post("/pstatus", async (req, res) => {
   try {
-    let players = "";
+    let name = req.body?.name;
+    let id = req.body?.id;
 
-    if (req.body?.players) {
-      players = req.body.players; // من البوت: players = "Player1\nPlayer2\nPlayer3"
-      connectedPlayers = players.split("\n"); // تحديث الذاكرة عند كل تحديث
-    } else if (typeof req.body === "string") {
-      players = req.body;
-      connectedPlayers = players.split("\n");
+    if (!name || !id) {
+      return res.status(400).end();
     }
 
-    // إرسالها للخادم الرئيسي
+    const cleanId = id.replace("player", "");
+    const playerEntry = `${name} ${cleanId}`;
+
+    const existsIndex = connectedPlayers.findIndex(p => p.startsWith(name + " "));
+    if (existsIndex !== -1) {
+      connectedPlayers[existsIndex] = playerEntry;
+    } else {
+      connectedPlayers.push(playerEntry);
+    }
+
     const params = new URLSearchParams();
-    params.append("players", players);
+    params.append("name", name);
+    params.append("id", id);
 
     await fetch("http://fi9.bot-hosting.net:21908/pstatus", {
       method: "POST",
@@ -41,7 +47,6 @@ app.post("/pstatus", async (req, res) => {
   }
 });
 
-// لو تحب تعرض اللاعبين لأي حد يقدر يطلبهم هنا
 app.get("/players", async (req, res) => {
   try {
     res.status(200).send(connectedPlayers.join("\n"));
@@ -49,6 +54,7 @@ app.get("/players", async (req, res) => {
     res.status(500).end();
   }
 });
+
 /* ========= ANNOUNCEMENT RELAY ========= */
 
 app.post("/set_msg", async (req, res) => {
