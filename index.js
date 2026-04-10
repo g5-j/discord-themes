@@ -7,8 +7,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.text());
 
-let connectedPlayers = [];
-
 /* ========= PLAYERS RELAY ========= */
 
 app.post("/pstatus", async (req, res) => {
@@ -18,16 +16,6 @@ app.post("/pstatus", async (req, res) => {
 
     if (!name || !id) {
       return res.status(400).end();
-    }
-
-    const cleanId = id.replace("player", "");
-    const playerEntry = `${name} ${cleanId}`;
-
-    const existsIndex = connectedPlayers.findIndex(p => p.startsWith(name + " "));
-    if (existsIndex !== -1) {
-      connectedPlayers[existsIndex] = playerEntry;
-    } else {
-      connectedPlayers.push(playerEntry);
     }
 
     const params = new URLSearchParams();
@@ -43,14 +31,6 @@ app.post("/pstatus", async (req, res) => {
     res.end();
   } catch (err) {
     console.error(err);
-    res.status(500).end();
-  }
-});
-
-app.get("/players", async (req, res) => {
-  try {
-    res.status(200).send(connectedPlayers.join("\n"));
-  } catch {
     res.status(500).end();
   }
 });
