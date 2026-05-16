@@ -1,14 +1,28 @@
 import express from "express";
 import serverless from "serverless-http";
+import cors from "cors";
 
 const app = express();
 
+/* ========= CORS SETUP ========= */
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
+app.options("*", cors({
+  origin: "*",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+
+/* ========= BODY PARSERS ========= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.text());
 
 /* ========= PLAYERS RELAY ========= */
-
 app.post("/pstatus", async (req, res) => {
   try {
     let name = req.body?.name;
@@ -28,7 +42,7 @@ app.post("/pstatus", async (req, res) => {
       body: params.toString()
     });
 
-    res.end();
+    res.status(200).end();
   } catch (err) {
     console.error(err);
     res.status(500).end();
@@ -36,7 +50,6 @@ app.post("/pstatus", async (req, res) => {
 });
 
 /* ========= ANNOUNCEMENT RELAY ========= */
-
 app.post("/set_msg", async (req, res) => {
   try {
     let message = "";
@@ -58,24 +71,26 @@ app.post("/set_msg", async (req, res) => {
       body: params.toString()
     });
 
-    res.end();
-  } catch {
+    res.status(200).end();
+  } catch (err) {
+    console.error(err);
     res.status(500).end();
   }
 });
 
+/* ========= GET MESSAGE ========= */
 app.get("/msg", async (req, res) => {
   try {
     const response = await fetch("http://fi9.bot-hosting.net:21908/msg");
     const text = await response.text();
     res.status(200).send(text);
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).end();
   }
 });
 
 /* ========= UPDATE RELAY ========= */
-
 app.post("/update", async (req, res) => {
   try {
     const params = new URLSearchParams();
@@ -92,8 +107,9 @@ app.post("/update", async (req, res) => {
       body: params.toString()
     });
 
-    res.end();
-  } catch {
+    res.status(200).end();
+  } catch (err) {
+    console.error(err);
     res.status(500).end();
   }
 });
