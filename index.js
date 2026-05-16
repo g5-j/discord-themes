@@ -1,11 +1,7 @@
 import express from "express";
 import serverless from "serverless-http";
-import cors from "cors";
 
 const app = express();
-
-// Enable CORS for all origins and methods
-app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
