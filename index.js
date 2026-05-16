@@ -1,7 +1,13 @@
 import express from "express";
 import serverless from "serverless-http";
+import cors from "cors";
 
 const app = express();
+
+/* ========= CORS (هنا الحل الوحيد اللي طلبته) ========= */
+app.use(cors({
+  origin: "*"
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
