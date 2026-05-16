@@ -4,10 +4,8 @@ import cors from "cors";
 
 const app = express();
 
-/* ========= CORS (هنا الحل الوحيد اللي طلبته) ========= */
-app.use(cors({
-  origin: "*"
-}));
+// Enable CORS for all origins and methods
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
