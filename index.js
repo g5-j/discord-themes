@@ -3,8 +3,8 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-const PYTHON_URL = process.env.PYTHON_URL;
-const API_KEY = process.env.API_KEY;
+const PYTHON_URL = "http://fi13.bot-hosting.cloud:25862";
+const API_KEY = "LAC_8fK2mP7xQ9vR4tY6";
 
 app.get("/", (req, res) => {
   res.json({ ok: true, service: "LAC Status Relay" });
