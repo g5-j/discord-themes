@@ -1,102 +1,104 @@
-import express from "express";
-import serverless from "serverless-http";
+const express = require("express");
 
 const app = express();
-
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.text());
 
-/* ========= PLAYERS RELAY ========= */
+const PYTHON_URL = process.env.PYTHON_URL;
+const API_KEY = process.env.API_KEY;
 
-app.post("/pstatus", async (req, res) => {
-  try {
-    let name = req.body?.name;
-    let id = req.body?.id;
-
-    if (!name || !id) {
-      return res.status(400).end();
-    }
-
-    const params = new URLSearchParams();
-    params.append("name", name);
-    params.append("id", id);
-
-    await fetch("http://fi9.bot-hosting.net:21908/pstatus", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString()
-    });
-
-    res.end();
-  } catch (err) {
-    console.error(err);
-    res.status(500).end();
-  }
+app.get("/", (req, res) => {
+  res.json({ ok: true, service: "LAC Status Relay" });
 });
 
-/* ========= ANNOUNCEMENT RELAY ========= */
-
-app.post("/set_msg", async (req, res) => {
-  try {
-    let message = "";
-
-    if (req.body?.message) {
-      message = req.body.message;
-    } else if (typeof req.body === "string") {
-      message = req.body;
-    }
-
-    const params = new URLSearchParams();
-    params.append("message", message);
-
-    await fetch("http://fi9.bot-hosting.net:21908/set_msg", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: params.toString()
-    });
-
-    res.end();
-  } catch {
-    res.status(500).end();
-  }
+app.get("/health", (req, res) => {
+  res.json({ ok: true });
 });
-
-app.get("/msg", async (req, res) => {
-  try {
-    const response = await fetch("http://fi9.bot-hosting.net:21908/msg");
-    const text = await response.text();
-    res.status(200).send(text);
-  } catch {
-    res.status(500).end();
-  }
-});
-
-/* ========= UPDATE RELAY ========= */
 
 app.post("/update", async (req, res) => {
   try {
-    const params = new URLSearchParams();
+    if (!PYTHON_URL || !API_KEY) {
+      return res.status(503).json({
+        ok: false,
+        error: "Relay environment is not configured"
+      });
+    }
 
-    if (req.body.players) params.append("players", req.body.players);
-    if (req.body.time) params.append("time", req.body.time);
-    if (req.body.weather) params.append("weather", req.body.weather);
+    const map = typeof req.query.map === "string"
+      ? req.query.map
+      : "";
 
-    await fetch("http://fi9.bot-hosting.net:21908/update", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: params.toString()
+    const playersRaw = typeof req.query.players === "string"
+      ? req.query.players
+      : "0";
+
+    const gameTime = typeof req.query.time === "string"
+      ? req.query.time
+      : "";
+
+    const code = typeof req.query.code === "string"
+      ? req.query.code
+      : "";
+
+    const weather = typeof req.query.weather === "string"
+      ? req.query.weather
+      : "غير معروف";
+
+    if (!/^\d{10}$/.test(code)) {
+      return res.status(400).json({
+        ok: false,
+        error: "code must contain exactly 10 digits"
+      });
+    }
+
+    const players = Number.parseInt(playersRaw, 10);
+
+    if (!Number.isFinite(players) || players < 0) {
+      return res.status(400).json({
+        ok: false,
+        error: "players must be a non-negative integer"
+      });
+    }
+
+    const response = await fetch(
+      `${PYTHON_URL.replace(/\/$/, "")}/update`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": API_KEY
+        },
+        body: JSON.stringify({
+          map,
+          players,
+          time: gameTime,
+          code,
+          weather
+        })
+      }
+    );
+
+    const text = await response.text();
+
+    let body;
+
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = {
+        raw: text
+      };
+    }
+
+    return res.status(response.status).json(body);
+
+  } catch (error) {
+    console.error("Relay error:", error);
+
+    return res.status(502).json({
+      ok: false,
+      error: "Could not reach Python server"
     });
-
-    res.end();
-  } catch {
-    res.status(500).end();
   }
 });
 
-export default app;
-export const handler = serverless(app);
+module.exports = app;
