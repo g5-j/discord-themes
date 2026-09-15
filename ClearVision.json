@@ -525,12 +525,12 @@
     "icons": {
       "ic_mic_neutral": "#102b47",
       "ic_mic_muted_neutral": "#fb4934",
+      "ic_deafened": "#fb4934",
+      "ic_undeafened": "#102b47",
       "ic_soundboard": "transparent",
-      "ic_soundboard_muted": "transparent",
-      "ic_video": "#102b47",
-      "ic_video_disabled": "#fb4934"
+      "ic_soundboard_muted": "transparent"
     },
     "iconpack": "rosiecord-plumpy"
-  },
+  }
   "spec": 2
 }
